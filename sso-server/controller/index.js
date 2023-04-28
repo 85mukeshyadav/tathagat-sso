@@ -10,12 +10,10 @@ const re = /(\S+)\s+(\S+)/;
 
 
 var db = require('../config/db');
-const {getLoginUser} = require("../helper/helper");
+const {getLoginUser, tokencheck} = require("../helper/helper");
 
 
-const alloweOrigin = {
-    "http://localhost:3020": true, "http://localhost:3030": true, "http://localhost:3080": true
-};
+const alloweOrigin = JSON.parse(process.env.ALLOWE_ORIGIN)
 
 const deHyphenatedUUID = () => uuidv4().replace(/-/gi, "");
 const encodedId = () => hashids.encodeHex(deHyphenatedUUID());
@@ -24,10 +22,6 @@ const encodedId = () => hashids.encodeHex(deHyphenatedUUID());
 // It can be useful for variuos audit purpose
 const sessionUser = {};
 const sessionApp = {};
-
-const originAppName = {
-    "http://localhost:3020": "sso_consumer", "http://localhost:3030": "simple_sso_consumer"
-};
 
 
 const tokenCreate = userId => {
@@ -56,52 +50,51 @@ const verifySsoToken = async (req, res, next) => {
 
     try {
         const token = req.query.ssoToken
-        const verified = jwt.verify(req.query.ssoToken, jwtSecretKey);
+        req.db = db;
+        var verified = await tokencheck(req);
         console.log("verified", verified)
         if (verified) {
             return res.status(200).send({token});
         } else {
             // Access Denied
-            return res.status(401).send({
-                status: 401, message: error
-            });
+            return res.status(401).send({status: 401, message: error});
         }
     } catch (error) {
         // Access Denied
-        return res.status(401).send({
-            status: 401, message: error
-        });
+        return res.status(401).send({status: 401, message: error});
     }
 };
 const doLogin = async (req, res, next) => {
-    console.log("Login", req.body, req.sessionID)
+    console.log("Login", req.body, req.sessionID,alloweOrigin)
     // do the validation with email and password
     // but the goal is not to do the same in this right now,
     // like checking with Datebase and all, we are skiping these section
     const {email, password} = req.body;
-
-    const token = await tokenCreate(email)
-    console.log("token", token)
-
     // else redirect
     const {serviceURL} = req.query;
     const id = encodedId();
-    req.session.user = token;
     sessionUser[id] = email;
     if (serviceURL == null) {
         return res.redirect("/");
     }
     const url = new URL(serviceURL);
     console.log("url", url)
-
+    console.log("serviceURL",serviceURL)
     req.db = db;
-    var tokenUser = getLoginUser(req);
+    var tokenUser = await getLoginUser(req);
 
     if (tokenUser.status == 200) {
         console.log(tokenUser)
+        req.session.user = tokenUser.token;
+
+        console.log(`${serviceURL}?ssoToken=${tokenUser.token}`)
         return res.redirect(`${serviceURL}?ssoToken=${tokenUser.token}`);
+
     } else {
-        return res.redirect("/login");
+        console.log(process.env.ROOT_URL+`/simplesso/login?serviceURL=${serviceURL}`)
+        req.query = null
+        req.body = null
+        return res.redirect(process.env.ROOT_URL+`/simplesso/login?serviceURL=${serviceURL}`);
     }
 
 };
@@ -114,14 +107,16 @@ const login = (req, res, next) => {
     // for the redirection
     const {serviceURL} = req.query;
     // direct access will give the error inside new URL.
+    console.log("req.query",req.query)
+    console.log("req.body",req.body)
+
     if (serviceURL != null) {
         const url = new URL(serviceURL);
         if (alloweOrigin[url.origin] !== true) {
-            return res
-                .status(400)
-                .json({message: "Your are not allowed to access the sso-server"});
+            return res.status(400).json({message: "Your are not allowed to access the sso-server"});
         }
     }
+    console.log(req.session.user)
     if (req.session.user != null && serviceURL == null) {
         return res.redirect("/");
     }
@@ -129,7 +124,6 @@ const login = (req, res, next) => {
     if (req.session.user != null && serviceURL != null) {
         const url = new URL(serviceURL);
         const intrmid = encodedId();
-        storeApplicationInCache(url.origin, req.session.user, intrmid);
         return res.redirect(`${serviceURL}?ssoToken=${intrmid}`);
     }
 

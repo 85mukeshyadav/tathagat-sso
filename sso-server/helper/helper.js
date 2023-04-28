@@ -56,4 +56,29 @@ module.exports = {
     },
 
 
+    tokencheck:function (req){
+        return new Promise(async (resolve) => {
+            const {users} = req.db;
+            try {
+                // Verify token
+                const decoded = await jwt.verify(req.query.ssoToken, process.env.JWT_SECRET);
+                //console.log("decoded", decoded)
+                let Id = decoded["user"].email_Id
+                console.log("decodeduses", Id)
+                let r = await users.findOne({where: {email_Id: Id}})
+                console.log("r", r);
+                req.user = decoded["user"];
+                console.log("req.user", req.user)
+               resolve(true)
+            } catch (err) {
+                console.log("Err", err);
+                resolve(false)
+            }
+
+        });
+
+
+    }
+
+
 }
