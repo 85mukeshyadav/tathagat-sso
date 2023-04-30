@@ -36,12 +36,6 @@ app.get("/", (req, res, next) => {
   });
 });
 
-app.use((req, res, next) => {
-  // catch 404 and forward to error handler
-  const err = new Error("Resource Not Found");
-  err.status = 404;
-  next(err);
-});
 
 app.use((err, req, res, next) => {
   console.error({
