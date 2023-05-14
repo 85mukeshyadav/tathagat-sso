@@ -89,7 +89,7 @@ const doLogin = async (req, res, next) => {
 
         console.log(`${serviceURL}?ssoToken=${tokenUser.token}`)
         //return res.redirect(`${serviceURL}?ssoToken=${tokenUser.token}`);
-        return res.redirect(`${serviceURL}/ssologin/${tokenUser.token}`);
+        return res.redirect(`${serviceURL}/ssologin/${tokenUser.token}/${email}`);
 
     } else {
         console.log(process.env.ROOT_URL+`/simplesso/login?serviceURL=${serviceURL}`)
@@ -125,7 +125,7 @@ const login = (req, res, next) => {
     if (req.session.user != null && serviceURL != null) {
         const url = new URL(serviceURL);
         const intrmid = encodedId();
-        return res.redirect(`${serviceURL}/ssologin/${tokenUser.token}`);
+        return res.redirect(`${serviceURL}/ssologin/${tokenUser.token}/${email}`);
         //return res.redirect(`${serviceURL}?ssoToken=${intrmid}`);
     }
 
