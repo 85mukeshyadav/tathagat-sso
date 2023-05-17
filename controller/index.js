@@ -136,7 +136,8 @@ const login = (req, res, next) => {
 
 
 const logout = async (req, res, next) => {
-    req.session = null;
+    req.session.destroy();
+    req.session = null // Deletes the cookie.
     return res.send({status:200,message:"data"});
 
 
