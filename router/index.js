@@ -9,5 +9,6 @@ router
   .post(controller.doLogin);
 
 router.get("/verifytoken", controller.verifySsoToken);
+router.get("/logout", controller.logout);
 
 module.exports = router;
