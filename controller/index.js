@@ -136,17 +136,9 @@ const login = (req, res, next) => {
 
 
 const logout = async (req, res, next) => {
-    const {serviceURL} = req.query;
-    console.log("serviceURL",serviceURL)
-    if (serviceURL != null) {
-        const url = new URL(serviceURL);
-        if (alloweOrigin[url.origin] !== true) {
-            return res.status(400).json({message: "Your are not allowed to access the sso-server"});
-        }
-    }else {
-        req.session = null;
-        return res.redirect(`${serviceURL}/`);
-    }
+    req.session = null;
+    return res.send({status:200,message:"data"});
+
 
 
 }
