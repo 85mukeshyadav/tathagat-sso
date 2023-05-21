@@ -141,6 +141,25 @@ const logout = async (req, res, next) => {
     return res.send({status:200,message:"data"});
 
 
+}
+
+
+const weblogout = async (req, res, next) => {
+    const {serviceURL} = req.query;
+    console.log("serviceURL",serviceURL)
+    try {
+        req.session.destroy();
+        req.session = null // Deletes the cookie.
+        return res.redirect(serviceURL);
+
+    }catch (e) {
+        console.log(e)
+        return res.redirect(serviceURL);
+    }
 
 }
-module.exports = Object.assign({}, {doLogin, login, verifySsoToken,logout});
+
+
+
+
+module.exports = Object.assign({}, {doLogin, login, verifySsoToken,logout,weblogout});
