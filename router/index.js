@@ -14,4 +14,6 @@ router
 router.get("/verifytoken", controller.verifySsoToken);
 router.get("/logout",cors(), controller.logout);
 
+router.get("/weblogout", controller.weblogout);
+
 module.exports = router;
