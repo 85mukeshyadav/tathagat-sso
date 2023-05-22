@@ -128,7 +128,7 @@ const login = (req, res, next) => {
         const intrmid = encodedId();
         var tokenUser = req.session.user
         var email = req.session.email
-        return res.redirect(`${serviceURL}/ssologin/${tokenUser.token}/${email}`);
+        return res.redirect(`${serviceURL}/ssologin/${tokenUser}/${email}`);
         //return res.redirect(`${serviceURL}?ssoToken=${intrmid}`);
     }
 
