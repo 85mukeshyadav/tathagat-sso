@@ -86,6 +86,7 @@ const doLogin = async (req, res, next) => {
     if (tokenUser.status == 200) {
         console.log(tokenUser)
         req.session.user = tokenUser.token;
+        req.session.email = email;
 
         console.log(`${serviceURL}?ssoToken=${tokenUser.token}`)
         //return res.redirect(`${serviceURL}?ssoToken=${tokenUser.token}`);
@@ -125,6 +126,8 @@ const login = (req, res, next) => {
     if (req.session.user != null && serviceURL != null) {
         const url = new URL(serviceURL);
         const intrmid = encodedId();
+        var tokenUser = req.session.user
+        var email = req.session.email
         return res.redirect(`${serviceURL}/ssologin/${tokenUser.token}/${email}`);
         //return res.redirect(`${serviceURL}?ssoToken=${intrmid}`);
     }
